@@ -1,0 +1,730 @@
+---
+title: "Technostress and Psychological Wellbeing"
+subtitle: "Meta-Analysis"
+author: "Jay Jeffries"
+institute: "University of Nebraska-Lincoln"
+date: "4/14/2021"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: middle
+
+## Technostress
+
+- "A modern disease of adaptation caused by an inability to cope with new computer technologies, affecting mental health in a manner which may manifest as a struggle to accept computer technology, or as over-identification with computer technology" <sup> 1 </sup>
+
+- "Any negative impact on attitudes, thoughts, behaviors, or body physiology that is caused either directly or indirectly by technology" <sup> 2 </sup>
+
+- Based on the root concept of stress that includes (1) the internal state of the organism (a strain); (2) an external event (a stressor); and (3) an experience that arises from an ongoing transaction between a person and the environment. <sup> 3 </sup>
+
+.footnote[
+<small>[1] Ragu-Nathan et al. (2008)</small>
+<small>[2] Tarafdar et al. (2007)</small>
+<small>[3] Brod (1984)</small>
+]
+---
+class: inverse, middle
+
+# Past Literature
+
+- Inclusion or exclusion criteria were too <i>narrow</i><sup> 1 </sup>
+  - Only involving articles that measured social media use 
+  - Excluding unpublished articles (publication bias and file drawer effect)
+- A focus on technostress in professional organization, industry, employees<sup> 2 </sup>
+  - Measured outcome is usually job satisfaction, performance, productivity
+- Investigating relationship of age and technology <i>acceptance</i> and <i>integration</i><sup> 3 </sup>
+  - Angled at examining this in educators rather than students<sup> 4 </sup>
+
+.footnote[
+<small>[1] Piteo & Ward, 2020</small>
+<small>[2] Sarabadani et al., 2018</small>
+<small>[3] Hauk et al., 2018</small>
+<small>[4] Longman, 2013</small>
+]
+---
+class:
+
+# Technostress Measures
+
+<b>Measured via metrics of technology use:</b>
+- Smartphone Addiction or Frequency Scale
+- Social Media Engagement Questionnaires
+- Digital Stress Scale
+- Facebook Use or Addiction Scale
+- Social Network Intensity 
+- Minutes of Smartphone Use per Day
+
+```{r, echo = FALSE}
+knitr::include_graphics("https://whatfix.com/blog/wp-content/uploads/2019/08/Screen-Shot-2019-08-21-at-11.44.54-AM-4.png")
+
+options(htmltools.dir.version = FALSE)
+
+setwd("/Users/jayjeffries/Desktop/Meta-Analysis/")
+TechnostressData <- read.csv("Technostress_Codebook.csv",header=TRUE, sep = ",")
+TechnostressData <- TechnostressData[1:82,]
+# Importing Data
+
+library("metafor")
+library("robumeta")
+library("puniform")
+library("metaviz")
+library("ggplot2")
+library("ggforce")
+library("dplyr")
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(broom)
+library(Matrix)
+library(corrplot)
+library(gtsummary)
+library(pwr)
+#Loading Packages
+
+names(TechnostressData)[15] <- "Pct_First_Year"
+names(TechnostressData)[16] <- "Pct_Second_Year"
+names(TechnostressData)[17] <- "Pct_Third_Year"
+names(TechnostressData)[18] <- "Pct_Fourth_Year"
+
+# Dummy coding school type
+TechnostressData$primary <- ifelse(TechnostressData$school_type == "1", 1, 0)
+TechnostressData$secondary <- ifelse(TechnostressData$school_type == "2", 1, 0)
+TechnostressData$higher <- ifelse(TechnostressData$school_type == "3", 1, 0)
+
+# Dummy coding latent variable
+TechnostressData$anx <- ifelse(TechnostressData$latent_var == "0", 1, 0)
+TechnostressData$dep <- ifelse(TechnostressData$latent_var == "1", 1, 0)
+TechnostressData$fatigue <- ifelse(TechnostressData$latent_var == "2", 1, 0)
+
+TechnostressData$school_type <- factor(TechnostressData$school_type)
+TechnostressData$latent_var <- factor(TechnostressData$latent_var)
+```
+---
+class:
+
+# Latent Variable Measures
+<b>Evaluated via psychological scales & symptomology checklists:</b>
+- Depression Anxiety Stress Scales
+- Fear of Missing Out Scale
+- DSM-V Checklists
+- State-Trait Anxiety Inventories
+- Patient Health Questionnaires
+- Fatigue due to Social Networking Scale
+
+```{r, echo = FALSE}
+knitr::include_graphics("https://www.neuro.mpg.de/3740023/header_image-1559661589.jpg?t=eyJ3aWR0aCI6MTM5Niwib2JqX2lkIjozNzQwMDIzfQ%3D%3D--609ecd57a64fabceb94e1447f6c56eb195e393be")
+```
+---
+class: center
+
+# PRISMA Diagram 
+### ERIC, PsycInfo, ProQuest, and Backwards Citation Searching
+
+.center[![Plot Caption](PRISMA_Diagram.PNG)]
+---
+class: center, middle
+
+## Basic Stressor-Strain Model
+
+.pull-left[
+<b>Stress:</b> Technology
+
+<b>Strain:</b> Effect Size for Anxiety, Depression, Fear of Missing Out, Fatigue
+
+<b>Situational Factors:</b> Moderators
+]
+
+.pull-right[
+```{r, echo = FALSE}
+knitr::include_graphics("https://www.researchgate.net/profile/Qiang-Tu-8/publication/220079808/figure/fig1/AS:341262247972868@1458374668782/Transaction-Based-Model-of-Stress_W640.jpg")
+```
+]
+---
+class: middle
+
+## Inclusion / Exclusion Criteria
+
+Technology measure
+
+Anxiety, Depression, Fear of Missing Out, Fatigue measure
+
+Research is student-centered and fits within K-12 or higher education
+
+Need a correlation, standardized mean difference, or odds ratio between measures
+
+Is <i>not</i> aimed at workforce or job training
+
+---
+class: center
+
+# Moderators
+
+.pull-left[
+<b>While Searching:</b>
+- average age
+- school type (level)
+- percent of first through fourth year of college
+- percent female participants
+- percent white, black/African-American, Asian/Asian-American, Hispanic/Latino, Native American, Multi- or Biracial
+- percent free or reduced lunch
+- percent of history with anxiety or depression
+- latent variable (anxiety, depression, fatigue)
+]
+
+.pull-right[
+<b>Moderators Used in Analysis:</b>
+- <u>`average age`</u>
+- <u>`school type (level)`</u>
+- percent of first through fourth year of college
+- <u>`percent female participants`</u>
+- percent white, black/African-American, Asian/Asian-American, Hispanic/Latino, Native American, Multi- or Biracial
+-percent free or reduced lunch
+- percent of history with anxiety or depression
+- <u>`latent variable (anxiety, depression, FOMO, fatigue)`</u>
+]
+
+---
+class: middle
+
+## Data Transformation
+- Pearson <i>r</i> correlation coefficients transformed into Fishers Z scores
+  - Allowed for this analysis, as this provided Fishers standard errors
+- Odds ratios transformed into correlations, then into Fishers Z scores
+  - Standardized all odds ratios and allows for comparison across studies
+- Fishers Z scores transformed back into Pearson <i>r</i> correlation coefficients
+  
+This site <b>saved my life</b>: <i>[Psychometrica Effect Size Calculator](https://www.psychometrica.de/effect_size.html)</i>
+
+## Reliability Check
+- Independent coder analyzed and coded 35% of articles
+- After reviewing and resolving disagreements, percent agreement was 99.1%!
+
+---
+class: inverse, center
+
+.pull-left[
+# Data Cleaning and Reformatting
+### Dummy Coding
+- school_type 1 = primary
+- school_type 2 = secondary
+- school_type 3 = higher education
+
+- latent_var 1 = anxiety
+- latent_var 2 = depression
+- latent_var 3 = fatigue
+
+### Effect Size Information
+- Avg # of ES per study: 4.56
+- Correlations ranged from <i>r</i> = -0.25 to 0.60
+]
+.pull-right[
+```{r}
+TechnostressData[TechnostressData == -999] <- NA
+
+sum(is.na(TechnostressData))
+
+mean(is.na(TechnostressData))
+
+round(mean(table(TechnostressData$studyID)), 2)
+
+range(TechnostressData$es_Ztocorr)
+```
+]
+
+```{r, echo = FALSE}
+SE <- TechnostressData[ ,"fishers_SE"]
+effectsize <- TechnostressData[ ,"fishers_z"]
+
+TechStressDat <- abs(TechnostressData[1:82,c(48:50, 8, 55)])
+
+sunsetdata <- escalc(measure="ZCOR", ri = es_Ztocorr, ni = N, sei = fishers_SE, vi = var, 
+              data = TechStressDat)
+
+res <- rma.uni(yi = TechnostressData$fishers_z, vi = TechnostressData$var, sei = 
+          TechnostressData$fishers_SE, method = "HE")
+
+power <-  pwr.r.test(r = TechnostressData$es_Ztocorr, 
+                     n = TechStressDat$N,
+                     sig.level = 0.05, power = NULL,
+                     alternative = "two.sided")
+
+TechnostressData$power <- power$power
+```
+
+```{r, echo = FALSE}
+publication <- TechnostressData %>% select(pub_year, pub_status, pub_type)
+pubtable <- tbl_summary(publication) %>% 
+  modify_header(label = "**Moderator**") %>% 
+  bold_labels()
+
+samp <- TechnostressData %>% select(N, avg_age, N_fem, school_type)
+samptable <- tbl_summary(samp) %>% 
+  modify_header(label = "**Moderator**") %>% 
+  bold_labels()
+
+latent <- TechnostressData %>% select(anx, dep, fatigue)
+lattable <- tbl_summary(latent) %>% 
+  modify_header(label = "**Moderator**") %>% 
+  bold_labels()
+```
+---
+class:
+
+# Data Descriptives
+```{r, echo = FALSE, warning = FALSE}
+pubtable
+```
+
+---
+class:
+
+# Data Descriptives
+.pull-left[
+```{r, echo = FALSE, warning = FALSE}
+samptable
+```
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE}
+lattable
+```
+]
+---
+class: center, middle
+
+# Moderator Correlations 
+## Article Demographics
+```{r, echo = FALSE, warning = FALSE}
+vars4 <- TechnostressData %>% select(es_Ztocorr, pub_year, pub_status, pub_type, N)
+corrvar4 <- cor(vars4, use = "pairwise.complete.obs")
+corrvar4[lower.tri(corrvar4, diag = TRUE)] <- NA
+corrplot(corrvar4, method = "number", type = "upper", diag = FALSE)
+```
+---
+class: center, middle
+
+# Moderator Correlations 
+## Sample Demographics
+```{r, echo = FALSE, warning = FALSE}
+vars1 <- TechnostressData %>% select(es_Ztocorr, avg_age, primary, secondary, higher)
+corrvar1 <- cor(vars1, use = "pairwise.complete.obs")
+corrvar1[lower.tri(corrvar1, diag = TRUE)] <- NA
+corrplot(corrvar1, method = "number", type = "upper", diag = FALSE)
+```
+---
+class: center, middle
+
+# Moderator Correlations
+## Race & Ethnicity
+```{r, echo = FALSE, warning = FALSE}
+vars2 <- TechnostressData %>% select(es_Ztocorr, N_fem, N_black, N_hispanic, N_asian, N_native, N_multi, N_white)
+corrvar2 <- cor(vars2, use = "pairwise.complete.obs")
+corrvar2[lower.tri(corrvar2, diag = TRUE)] <- NA
+corrplot(corrvar2, method = "number", type = "upper", diag = FALSE)
+```
+---
+class: center, middle
+
+# Moderator Correlations
+## Higher Education
+```{r, echo = FALSE, warning = FALSE}
+vars3 <- TechnostressData %>% select(es_Ztocorr, Pct_First_Year, Pct_Second_Year, Pct_Third_Year, Pct_Fourth_Year)
+corrvar3 <- cor(vars3, use = "pairwise.complete.obs")
+corrvar3[lower.tri(corrvar3, diag = TRUE)] <- NA
+corrplot(corrvar3, method = "number", type = "upper", diag = FALSE)
+```
+---
+class: middle
+
+## Robust Variance Estimation Base Model
+### Output
+
+```{r, echo = FALSE, highlight.output = c(7:9, 12)}
+base <- robu(formula = fishers_z ~ 1, data = TechnostressData, 
+            modelweights = "CORR", studynum = studyID, 
+            var.eff.size = var,
+            small = TRUE)
+print(base)
+```
+---
+class: inverse, middle
+
+# Robust Variance Estimation Base Model
+## Interpretation
+
+Fisher's z were computed for each of the Pearson's *r* correlation coefficients and Odds Ratios drawn from these articles.
+Results:
+- the average weighted effect size from all effect sizes drawn from the pool of studies is 0.295
+  - the average correlation coefficient is 0.287
+- the magnitude of this effect size was found to be significant (p < 0.01)
+- percent of variance due to between-study factors = 35.48% = <i>I^2</i>
+- 1 standard deviation of the average weight effect = 0.01 = <i>Tau^2</i>
+- The weighted effect size of this model is estimated to fall between [0.208, 0.382], 95% of the time
+  - This corresponds to a true effect of *r* between [0.205, 0.364]
+- a prediction interval of [-0.0635, 0.6535]
+---
+class: middle, inverse
+
+# Effect Size Figures
+## Funnel Plots
+
+.pull-left[
+```{r, echo = FALSE}
+funnel(effectsize, sei = SE, refline = .295, main = "Funnel Plot",legend = TRUE)
+```
+]
+.pull-right[
+```{r, echo = FALSE}
+funnel(effectsize, sei = SE, refline = .295, level = c(90, 95, 99), 
+    shade = c("white", "orange", "red"), main = "Countour-Enhanced Funnel Plot", legend = TRUE)
+```
+]
+---
+# Power
+## Power per Study {metafor}
+### (1 - <i>Beta</i>) 
+
+```{r}
+mean(TechnostressData$power)
+range(TechnostressData$power)
+```
+---
+class: center, middle
+
+# Power Plots
+## Power and Sunset Plot
+
+```{r, echo = FALSE}
+ggplot(TechnostressData, aes(x = es_Ztocorr, y = power)) +
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Power") + 
+  ggtitle("Scatterplot of Study Power and Effect Size")
+```
+---
+class: center, middle
+
+# Power Plots
+## Power and Sunset Plot
+```{r, echo = FALSE}
+viz_sunset(res, contours = TRUE, power_contours =  "continuous")
+```
+---
+# Publication Bias Test
+## Egger's Test
+
+```{r, echo = FALSE, highlight.output = c(12:13)}
+robu.egger <- robu(formula = effectsize ~ SE, data = TechnostressData,
+                   modelweights = "CORR", studynum = studyID, 
+                   var.eff.size = var, small = TRUE)
+robu.egger
+```
+---
+# Publication Bias Correction
+## Trim and Fill
+
+```{r, echo = FALSE, highlight.output = 7}
+regtest(effectsize, sei = SE)
+```
+```{r, echo = FALSE, highlight.output = c(7, 9)}
+onelevel <- rma(es_anxcorr, var, data = TechnostressData)
+summary(onelevel)
+funnel(onelevel)
+
+trimandfill <- trimfill(onelevel)
+summary(trimandfill)
+```
+---
+class: inverse, center
+# Publication Bias Correction
+## Trim and Fill
+
+```{r, echo = FALSE}
+funnel(trimandfill, level = c(90, 95, 99), 
+    shade = c("white", "orange", "red"), main = "Trimmed & Filled Funnel Plot",
+    legend = TRUE)
+```
+---
+## Publication Bias Correction
+### PET-PEESE
+```{r, echo = FALSE, highlight.output = 12:13}
+PET <- robu(formula = fishers_z ~ fishers_SE, data = TechnostressData, 
+              modelweights = "CORR", studynum = studyID, var.eff.size = var, small = TRUE)
+print(PET)
+```
+---
+class: middle
+
+## Meta-Regression Moderator Selection
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- `average age`
+- school type (level)
+- latent variable (anxiety, depression, fatigue)
+- percent female participants
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggplot(TechnostressData, aes(x = es_Ztocorr, y = avg_age)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Average Age of Participant") + 
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE) +
+  ggtitle("Scatterplot of Mean Age Participants and Effect Size")
+```
+]
+---
+
+## Meta-Regression Moderator Selection
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- average age
+- `school type (level)`
+- latent variable (anxiety, depression, fatigue)
+- percent female participants
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggplot(TechnostressData, aes(x = es_Ztocorr, y = secondary)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "School Type (Secondary; 9th-12th)") +
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE) +
+  ggtitle("Scatterplot of Secondary Education Participants and Effect Size")
+```
+]
+---
+
+## Meta-Regression Moderator Selection
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- average age
+- school type (level)
+- latent variable (anxiety, depression, fatigue)
+- `percent female participants`
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggplot(TechnostressData, aes(x = es_Ztocorr, y = N_fem)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Percent Female Participants") +
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE) +
+  ggtitle("Scatterplot of Percent Female Participants and Effect Size")
+```
+]
+---
+
+## Meta-Regression Moderator Selection
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- average age
+- school type (level)
+- latent variable (anxiety, depression, fatigue)
+- percent female participants
+- `Interaction #1!`
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggplot(TechnostressData, aes(x = es_Ztocorr, y = N_fem, color = school_type, fill = school_type)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Percent Female") + 
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE) +
+  ggtitle("Scatterplot of Percent of Female Participants and Effect Size")
+```
+]
+---
+## Meta-Regression Moderator Selection
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- average age
+- school type (level)
+- latent variable (anxiety, depression, fatigue)
+- percent female participants
+- `Interaction between % female and higher education`
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggscatter(TechnostressData, x = "es_Ztocorr", y = "N_fem",
+  facet.by  = "school_type", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+```
+]
+---
+
+## Meta-Regression <b>Future</b> Moderator Analysis
+
+.pull-left[
+<b>Moderators Used in Analysis:</b>
+- average age
+- school type (level)
+- latent variable (anxiety, depression, fatigue)
+- percent female participants
+- Interaction between % female and school type
+- `Interaction between anxiety & average age and depression & average age`
+]
+.pull-right[
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE}
+ggscatter(TechnostressData, x = "es_Ztocorr", y = "avg_age",
+  facet.by  = "latent_var", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+```
+]
+---
+class: inverse, middle
+
+## Meta-Regression Output
+
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE, highlight.output = c(8:9)}
+metareg <- robu(fishers_z ~ avg_age + N_fem + higher + dep + fatigue + N_fem*higher,
+data = TechnostressData, modelweights = "CORR", studynum = studyID, var.eff.size = var, small = TRUE, na.rm = TRUE)
+metareg
+```
+
+---
+class: inverse, middle
+
+## Meta-Regression Output
+
+```{r, echo = FALSE, warning = FALSE, errors = FALSE, message = FALSE, highlight.output = c(12:13)}
+metareg <- robu(fishers_z ~ avg_age + N_fem + higher + dep + fatigue + N_fem*higher,
+data = TechnostressData, modelweights = "CORR", studynum = studyID, var.eff.size = var, small = TRUE, na.rm = TRUE)
+metareg
+```
+---
+class: middle
+
+## Plug-a-lug-a-chug
+
+If the study..
+- Involved participants of average age relative to the pool of studies (18.4 years)
+- Involved the average percent of females in the participant pool (58%)
+- The study was conducted at a higher education campus or university
+- The latent variable measured was anxiety (the referent)
+- We are not interested in the interaction between % female and higher education
+
+The estimated weighted effect size is:
+
+predicted ES = x0 + avg_age(x1) + N_fem(x2) + higher(x3) + dep (x4) + fatigue(x5) + N_fem*higher(x6)
+```{r}
+1.21 + ((-0.62)*(1)) + ((-0.002)*(58)) + ((-0.56)*(1)) + ((-0.07)*(0)) + ((0.16)*(0)) + ((0.009)*(0))
+```
+<i>r</i> = -0.086
+
+---
+class: middle
+
+## Plug-a-lug-a-chug
+
+If the study..
+- Involved participants who were 2 years younger than the average age of those in the pool of studies (16.4 years)
+- Involved the average percent of females in the participant pool (58%)
+- The study was conducted at a secondary or primary school
+- The latent variable measured was anxiety (the referent)
+- We are not interested in the interaction between % female and higher education
+
+predicted ES = x0 + avg_age(x1) + N_fem(x2) + higher(x3) + dep (x4) + fatigue(x5) + N_fem*higher(x6)
+```{r}
+1.21 + ((-0.62)*(-2)) + ((-0.002)*(58)) + ((-0.56)*(0)) + ((-0.07)*(0)) + ((0.16)*(0)) + ((0.009)*(0))
+```
+<i>r</i> = 0.981
+
+---
+class: middle
+
+## Plug-a-lug-a-chug
+
+If the study..
+- Involved participants who were 2 years younger than the average age of those in the pool of studies (16.4 years)
+- Involved the average percent of females in the participant pool (58%)
+- The study was conducted at a secondary or primary school
+- The latent variable measured was depression
+- We are not examining in the interaction between % female and higher education
+
+predicted ES = x0 + avg_age(x1) + N_fem(x2) + higher(x3) + dep (x4) + fatigue(x5) + N_fem*higher(x6)
+```{r}
+1.21 + ((-0.62)*(-2)) + ((-0.002)*(58)) + ((-0.56)*(0)) + ((-0.07)*(1)) + ((0.16)*(0)) + ((0.009)*(0))
+```
+<i>r</i> = 0.979
+
+---
+class: middle
+
+## Plug-a-lug-a-chug
+
+If the study..
+- Involved participants who were 2 years older than the average age of those in the pool of studies (20.4 years)
+- Involved the average percent of females in the participant pool (58%)
+- The study was conducted at a higher education institution
+- The latent variable measured was anxiety (the referent)
+- We are not examining in the interaction between % female and higher education
+
+predicted ES = x0 + avg_age(x1) + N_fem(x2) + higher(x3) + dep (x4) + fatigue(x5) + N_fem*higher(x6)
+```{r}
+1.21 + ((-0.62)*(2)) + ((-0.002)*(58)) + ((-0.56)*(1)) + ((-0.07)*(0)) + ((0.16)*(0)) + ((0.009)*(0))
+```
+<i>r</i> = 0.608
+
+---
+class: middle
+
+## Plug-a-lug-a-chug
+
+If the study..
+- Involved participants who were 4 years younger than the average age of those in the pool of studies (22.4 years)
+- Involved the average percent of females in the participant pool (58%)
+- The study was conducted at a higher education institution
+- The latent variable measured was fatigue
+- We are not examining in the interaction between % female and higher education
+
+predicted ES = x0 + avg_age(x1) + N_fem(x2) + higher(x3) + dep (x4) + fatigue(x5) + N_fem*higher(x6)
+```{r}
+1.21 + ((-0.62)*(4)) + ((-0.002)*(58)) + ((-0.56)*(1)) + ((-0.07)*(1)) + ((0.16)*(1)) + ((0.009)*(0))
+```
+<i>r</i> = -0.95
+
+---
+class: middle, inverse
+
+# Limitations
+
+Limited *df* in meta-regression model suggests I need to reduce number of predictors
+Deletion of:
+- fatigue moderator
+- interaction moderator
+
+Which leaves me with:
+- anxiety or depression moderators
+- percent female participants
+- average age
+- K-12 or higher education moderators
+---
+class: middle, inverse
+
+# Future Study
+
+To alleviate the stress on the *df*, it is suggested that I have 2 separate RVE Meta-Regressions that involve
+- anxiety or depression, average age, and percent female moderators
+- K-12 or higher education, average age, and percent female moderators
+
+I also plan to include more studies in my article pool to bolster my findings. As of now, I have 29 articles to screen for inclusion from forward/backward citation searching.
+---
+class: center, middle
+
+## Questions, Comments, Concerns?
+
+```{r, echo = FALSE}
+knitr::include_graphics("https://www.zilliondesigns.com/blog/wp-content/uploads/Questions-to-Ask-Before-Entering-a-Graphic-Design-Project.png")
+```
