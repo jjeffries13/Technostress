@@ -286,6 +286,16 @@ lattable <- tbl_summary(latent) %>%
   bold_labels()
 ```
 ---
+class: middle, center
+
+# Data Descriptives
+```{r, echo = FALSE, message = FALSE, warning = FALSE, error = FALSE}
+ggplot(TechnostressData, aes(x = fishers_z)) +
+  geom_histogram(aes(y=..density..), alpha=0.5, 
+  position="identity")+
+  geom_density(alpha=.2) 
+```
+---
 class:
 
 # Data Descriptives
