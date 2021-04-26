@@ -30,6 +30,20 @@ class: middle
 ---
 class: inverse, middle
 
+# Research Questions
+
+"What is the relationship between technostress and social anxiety in K-12 or higher 
+education?"
+
+"What is the association between technostress and depression in K-12 or higher 
+education?"
+
+"How does the correlation between anxiety & depression and technostress differ 
+depending on the user's age?"
+
+---
+class: inverse, middle
+
 # Past Literature
 
 - Inclusion or exclusion criteria were too <i>narrow</i><sup> 1 </sup>
@@ -47,7 +61,6 @@ class: inverse, middle
 <small>[4] Longman, 2013</small>
 ]
 ---
-class:
 
 # Technostress Measures
 
@@ -683,7 +696,7 @@ class: middle
 ## Plug-a-lug-a-chug
 
 If the study..
-- Involved participants who were 4 years younger than the average age of those in the pool of studies (22.4 years)
+- Involved participants who were 4 years older than the average age of those in the pool of studies (22.4 years)
 - Involved the average percent of females in the participant pool (58%)
 - The study was conducted at a higher education institution
 - The latent variable measured was fatigue
@@ -718,6 +731,9 @@ class: middle, inverse
 To alleviate the stress on the *df*, it is suggested that I have 2 separate RVE Meta-Regressions that involve
 - anxiety or depression, average age, and percent female moderators
 - K-12 or higher education, average age, and percent female moderators
+
+Investigating those that identified as multi- or bi-racial. The correlation between this moderator and correlation effect sizes was 0.77!
+- Likely very limited studies that recognize this group
 
 I also plan to include more studies in my article pool to bolster my findings. As of now, I have 29 articles to screen for inclusion from forward/backward citation searching.
 ---
