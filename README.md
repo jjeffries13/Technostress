@@ -1,4 +1,4 @@
-## The Impact of Technology Use on Student Psychological Wellbeing: A Technostress Meta-Analysis
+# The Impact of Technology Use on Student Psychological Wellbeing: A Technostress Meta-Analysis
 #### Jay Jeffries 
 <sub> ***University of Nebraska-Lincoln*** </sub>
 ### Abstract
