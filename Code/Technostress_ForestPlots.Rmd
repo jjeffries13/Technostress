@@ -1,0 +1,49 @@
+---
+title: "Technostress_ForestPlot"
+author: "Jay Jeffries"
+date: '2022-05-13'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+
+TechnostressData <- read_excel("TechnostressData.xlsx")
+
+devtools::install_github("rdboyes/forester")
+library(forester)
+```
+
+### Forest Plots
+```{r forest plots, include = FALSE}
+base2 <- robu(formula = fishers_z ~ 1, data = TechnostressData, 
+            modelweights = "CORR", studynum = author, 
+            var.eff.size = var,
+            small = TRUE)
+
+forest.robu(base2, es.lab = "ESID", study.lab = "author", "Effect Size" = fishers_z)
+
+pdf(file = "TechnostressForest.pdf", width = 13, height = 41, title = "Technostress Meta-Analysis Forest Plot", font = "Times")
+
+forest.robu(base2, es.lab="ESID", study.lab = "author", "Effect Size" = fishers_z)
+dev.off()
+
+forester(left_side_data = TechnostressData[,c(1, 3, 5, 6, 64)],
+         estimate = TechnostressData$es_Ztocorr,
+         ci_low = TechnostressData$es_Ztocorr_CI_lower,
+         ci_high = TechnostressData$es_Ztocorr_CI_upper,
+         display = FALSE,
+         xlim = c(-1, 1),
+         xbreaks = c(-.4, -.3, -.2, -.1, .1, .2, .3, .4), 
+         null_line_at = c(0, .165),
+         estimate_col_name = "Estimate (95% CI)",
+         file_path = "/Users/jayjeffries/Desktop/Meta-Analysis/Data File/forester_plot.png",
+         font_family = "sans",
+         arrows = TRUE,
+         arrow_labels = c("Negative Association", "Positive Association"))
+```
+
+```{r Forest Plot, echo = FALSE}
+knitr::include_graphics("/Users/jayjeffries/Desktop/Meta-Analysis/Data File/TechnostressForest.pdf")
+```
