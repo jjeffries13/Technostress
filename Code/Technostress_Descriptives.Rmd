@@ -1,0 +1,434 @@
+---
+title: "Technostress Descriptive Statistics"
+author: "Jay Jeffries"
+date: "5/10/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readxl)
+
+# Importing data
+#setwd("C:/Users/jjeffries8/OneDrive - University of Nebraska-Lincoln/Desktop/Meta-Analysis")
+TechnostressData <- read_excel("TechnostressData.xlsx")
+
+TechnostressDat <- TechnostressData[TechnostressData$latent_var != 2, ]
+
+library(dplyr)
+library(kableExtra)
+library(corrplot)
+library(ggplot2)
+library(ggpubr)
+library(ggridges)
+library(expss)
+library(geomtextpath)
+library(esc)
+library(downloadthis)
+```
+
+## Data Download 
+
+```{r, echo = FALSE}
+TechnostressData %>%
+  download_this(
+    output_name = "Technostress Meta-Analysis Dataset",
+    output_extension = ".xlsx",
+    button_label = "Download data as xlsx",
+    button_type = "danger",
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+```
+
+## Data Descriptives 
+
+```{r, echo = FALSE}
+TechStressPub = TechnostressDat %>% # Creating a new dataset using the origina mtcars dataset       
+  # Grouping the dataset by the carb variable
+  summarise( 
+    "Effect Sizes (ES)" = n(),
+    "Published Works" = sum(pub_status == "1"),
+    "Unpublished Works" = sum(pub_status == "0"),
+    " " = " ",
+    "Oldest Publication" = min(pub_year),
+    "Newest Publication" = max(pub_year),
+    " " = " ",
+    "Publication Year" = round(mean(pub_year),0),
+    "ES Per Article" = round(mean(ESID, na.rm = TRUE),2)
+  )
+
+TechStressSamp = TechnostressDat %>% # Creating a new dataset using the origina mtcars dataset       
+  # Grouping the dataset by the carb variable
+  summarise( 
+    "Min. Age" = min(TechnostressData$avg_age, na.rm = TRUE),
+    "Max. Age" = max(TechnostressData$avg_age, na.rm = TRUE),
+    " " = " ",
+    Age = round(mean(avg_age, na.rm = TRUE),2), 
+    "Sample Size" = round(mean(N, na.rm = TRUE),2),
+    " " = " ",
+    Female = round(mean(pct_fem, na.rm = TRUE),2),
+    White = round(mean(pct_white, na.rm = TRUE),2),
+    Black = round(mean(pct_black, na.rm = TRUE),2),
+    Hispanic = round(mean(pct_hispanic, na.rm = TRUE),2),
+    Asian = round(mean(pct_asian, na.rm = TRUE),2),
+    Native = round(mean(pct_native, na.rm = TRUE),2),
+    "Multiple Race/Ethnicity" = round(mean(pct_multi, na.rm = TRUE),2)
+)
+
+TechStressDesc = TechnostressDat %>% # Creating a new dataset using the origina mtcars dataset       
+  # Grouping the dataset by the carb variable
+  summarise( 
+    "Anxiety ES" = sum(TechnostressData$anx, na.rm = TRUE),
+    "Depression ES" = sum(TechnostressData$dep, na.rm = TRUE),
+    "K-12 Ed. Samples" = sum(TechnostressData$K12, na.rm = TRUE),
+    "Higher Ed. Samples" = sum(TechnostressData$higher, na.rm = TRUE),
+    " " = " ",
+    "Min. ES" = min(es_Ztocorr),
+    "Max. ES" = max(es_Ztocorr),
+    "Unweighted ES" = round(mean(es_Ztocorr, na.rm = TRUE),2) # changing the (,2) will round the average to whatever number of decimal points you would prefer
+  )
+```
+
+```{r PubDescriptives, echo = FALSE}
+PubDescriptives <- kbl(TechStressPub, caption = "Table 1. Publications Descriptive Statistics") %>%
+  add_header_above(c("Frequency (N)" = 3, " " = 1, "Range" = 2 , "Mean Statistic" = 2)) %>%
+  row_spec(0, bold = TRUE) %>%
+  kable_paper("hover", font_size = 12, full_width = TRUE) %>%
+  kable_styling(html_font = "serif")
+PubDescriptives
+```
+**Figure 1. Correlation Matrix of Publication Characeristics**
+```{r PubCorr, echo = FALSE}
+vars4 <- TechnostressDat %>% select(fishers_z, pub_year, pub_status, pub_type, N)
+corrvar4 <- cor(vars4, use = "pairwise.complete.obs")
+corrvar4[lower.tri(corrvar4, diag = TRUE)] <- NA
+corrplot(corrvar4, method = "number", type = "upper", diag = FALSE)
+```
+
+- Articles ranged from 2012 to 2021, which shows my meta-analysis utilizes information within 9 years of relevant data.
+- Of the 127 effect sizes, 10 derived from unpublished works. 
+- These articles (published and unpublished) range from 2012 to 2021, where the average year is 2018.
+- The mean number of effect sizes drawn from these works $\approx$ 3.
+
+```{r SampleDescriptives, error = FALSE, message = FALSE, warning = FALSE, echo = FALSE}
+SampleDescriptives <- kbl(TechStressSamp, caption = "Table 2. Sample Descriptive Statistics") %>%
+  add_header_above(c(" " = 5, "% of Sample" = 7)) %>%
+  add_header_above(c("Range" = 2, " " = 1, "Mean Statistic" = 9)) %>%
+  row_spec(0, bold = TRUE) %>%
+  kable_paper("hover", font_size = 12, full_width = TRUE) %>%
+  kable_styling(html_font = "serif")
+SampleDescriptives
+```
+
+**Figure 2. Correlation Matrix of Sample Characteristics**
+
+```{r SampleDescripPlots, echo = F, message = F}
+vars2 <- TechnostressDat %>% select(fishers_z, pct_fem, pct_black, pct_hispanic, pct_asian, pct_native, pct_multi, pct_white)
+corrvar2 <- cor(vars2, use = "pairwise.complete.obs")
+corrvar2[lower.tri(corrvar2, diag = TRUE)] <- NA
+corrplot(corrvar2, method = "number", type = "upper", diag = FALSE)
+
+ggplot(TechnostressDat, aes(x = es_Ztocorr)) +
+  geom_histogram(aes(y=..density..), alpha=0.5, 
+  position="identity") +
+  geom_density(alpha=.2) +
+  labs(title = "Figure 3. Histogram of Fishers z Scores",
+      x = "Pearson Correlation Coefficient", y = "Frequency", 
+      caption = "Note: Fishers z scores were converted into Pearson product-moment correlation coefficients for full interpretation.")
+```
+
+- Participant's age ranged from 11.2 to 24.4 years, where the mean years of age was 17.2. 
+- The average number of participants per sample ($N$) $\approx$ 4316 participants.
+
+```{r StudyDescriptivesTable, echo = FALSE}
+StudyDescriptives <- kbl(TechStressDesc, caption = "Table 3. Study Descriptive Statistics") %>%
+  add_header_above(c("Frequency (N)" = 4, " " = 1, "Range" = 2, "Average Statistic" = 1)) %>%
+  row_spec(0, bold = TRUE) %>%
+  kable_paper("hover", font_size = 12, full_width = TRUE) %>%
+  kable_styling(html_font = "serif")
+StudyDescriptives
+```
+- The effect sizes were separated by the type of latent (unobservable) variable being measured.
+  - The number of relationships between technology use and anxiety = 54.
+  - The number of relationships between technology use and depression = 70.
+  - The remaining effect sizes were either a measure of fatigue, a combination of anxiety *and* depression, a combination of depression *and* fatigue, or a combination of anxiety *and* fatigue.
+- Of those that reported the settings for observations, 64 derive from K-12 classrooms and 53 from post-secondary contexts. 
+
+**Figure 4. Correlation Matrix of Study Characteristics**
+
+```{r SampleCorr, echo = FALSE}
+vars1 <- TechnostressDat %>% select(fishers_z, avg_age, K12, higher, dep, anx)
+corrvar1 <- cor(vars1, use = "pairwise.complete.obs")
+corrvar1[lower.tri(corrvar1, diag = TRUE)] <- NA
+corrplot(corrvar1, method = "number", type = "upper", diag = FALSE)
+```
+- Effect sizes, or Pearson product-moment correlation coefficients ranged from $r = -.25$ to $r =.58$. The average unweighted association between measure of psychological well being and technology use is small to moderate ($r = .23$).
+
+```{r, include = FALSE, warnings = FALSE, errors = FALSE, message = FALSE}
+# The reliability estimates of anxiety, depression, fatigue, or FOMO measurements range from a Cronbach's alpha of 0.73 to 0.96.
+range(TechnostressDat$reliability, na.rm = TRUE)
+```
+
+\newpage
+
+## Exploratory Data Analysis {#Exploratory-Data-Analysis}
+### Figures & Plots
+Building a case for why each moderator is included
+
+```{r ridgelines, echo = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+ggplot(TechnostressDat, aes(x = es_Ztocorr, y = school_type, fill = school_type)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2) +
+  ggtitle("Effect Size Density by School Type") +
+  labs(x = "Effect Size", y = "School Type", caption = "0 = Primary/Secondary, 1 = Higher, NA = Undefined") +
+  theme_minimal() 
+
+ggplot(TechnostressDat, aes(x = es_Ztocorr, y = school_type, fill = school_type)) +
+  geom_density_ridges(
+   jittered_points = TRUE, quantile_lines = TRUE, scale = 0.9, alpha = 0.7,
+    vline_size = 1, vline_color = "red",
+    point_size = 0.4, point_alpha = 1,
+    position = position_raincloud(adjust_vlines = TRUE)) +
+  ggtitle("Effect Size Density by School Type") +
+  labs(x = "Effect Size", y = "School Type", caption = "0 = Primary/Secondary, 1 = Higher, NA = Undefined") +
+  theme_minimal()
+
+ggplot(data = subset(TechnostressDat, !is.na(latent_var)), 
+       aes(x = es_Ztocorr, y = dep, fill = latent_var)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,  na.rm = TRUE) +
+  ggtitle("Correlation Coefficient Density by Psychological Wellbeing Variable") +
+  labs(x = "Effect Size", y = "Psychologoical Symptom") +
+  scale_y_continuous(labels = c("Anxiety", "Depression"), 
+                     breaks = c(0, 1), limits = c(0, 2.85)) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplot(data = subset(TechnostressDat, !is.na(latent_var)), 
+       aes(x = es_Ztocorr, y = dep, fill = latent_var, color = dep)) +
+  geom_density_ridges(
+   jittered_points = TRUE, quantile_lines = TRUE, scale = 0.9, alpha = 0.7,
+    vline_size = 1, vline_color = "red",
+    point_size = 0.4, point_alpha = 1,
+    position = position_raincloud(adjust_vlines = TRUE)) +
+  ggtitle("Effect Size Density by Psychological Stress Variable") +
+  labs(x = "Effect Size", y = "Psychological Symptom") +
+  scale_y_continuous(labels = c("Anxiety", "Depression"), breaks = c(0, 1), limits = c(-.5, 2)) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+val_lab(TechnostressDat$school_type) = num_lab("
+0 Primary/Secondary
+1 Higher
+")
+
+val_lab(TechnostressDat$latent_var) = num_lab("
+0 Anxiety
+1 Depression
+")
+
+#ggplot(TechnostressData, aes(x = es_Ztocorr, color = school_type)) +
+#  geom_textpath(aes(label = school_type), stat = "density",
+#                size = 4, fontface = 4, hjust = 0.2, vjust = 0.3) +
+#  theme_minimal() +
+#  theme(legend.position = "none")
+
+ggplot(data = subset(TechnostressDat, !is.na(latent_var)), 
+                     aes(x = es_Ztocorr, color = latent_var)) +
+  ggtitle("Correlation Density Plots by Depression and Anxiety Symptoms") + 
+  labs(x = "Correlation Coefficient", y = "Frequency", caption = "Green line indicates average weighted Pearson product-moment correlation") +
+  geom_vline(aes(xintercept = .2025), color = "forestgreen", size = .8) +
+  geom_textpath(aes(label = latent_var), stat = "density",
+                size = 4, fontface = 4, hjust = 0.2, vjust = 0.3) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+aa <- ggplot(TechnostressDat, aes(x = es_Ztocorr, y = avg_age)) +
+  geom_point(position = "jitter") +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE) +
+  labs(x = "Correlation Coefficient", y = "Average Age") + 
+  ggtitle("Scatterplot of Correlation and Average Age of Participants") + 
+  theme_minimal()
+
+aa + stat_cor(method = "pearson", label.x = .41, label.y = 23)
+
+pf <- ggplot(TechnostressDat, aes(x = es_Ztocorr, y = pct_fem)) +
+  geom_point(position = "jitter") +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE) +
+  labs(x = "Correlation Coefficient", y = "% Female Participants") + 
+  ggtitle("Scatterplot of Correlation and Percentage of Female Participants") + 
+  theme_minimal()
+
+pf + stat_cor(method = "pearson", label.x = .42, label.y = 77)
+
+```
+
+## Missing Covariate Data
+### Percent Missing Values for Moderators
+
+```{r}
+age_summary <- summary(TechnostressDat$avg_age)
+fem_summary <- summary(TechnostressDat$pct_fem)
+
+# Average Age of Participant Missingness
+age_summary[[7]] / nrow(TechnostressDat)
+
+# Percent Female of Sample Missingness
+fem_summary[[7]] / nrow(TechnostressDat)
+```
+
+```{r, echo = F, eval = F, warnings = FALSE, errors = FALSE, message = FALSE}
+ggscatter(TechnostressDat, x = "fishers_z", y = "avg_age",
+  facet.by  = "school_type", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+# Generally speaking, it appears that the older you are, the smaller the effect size across all three school types. 
+
+ggplot(TechnostressDat, aes(x = fishers_z, y = avg_age, col = school_type, fill = school_type)) + 
+  geom_point(position = "jitter") +
+  geom_textsmooth(aes(label = school_type, color = school_type), 
+                  method = "lm", formula = y ~ x, size = 4, linetype = 3, 
+                  fontface = 3, linewidth = 1, vjust = -0.5,) +
+  labs(x = "Effect Size", y = "Average Age") + 
+  stat_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "#1b9e77") +
+  ggtitle("Scatterplot of Average Age and Effect Size by School Type") +
+  stat_ellipse(geom = "polygon", aes(fill = school_type), 
+                      alpha = 0.2,
+                      level = 0.95) + 
+  theme(legend.position = "none")
+
+# A strong, negative correlation between average age and effect size exists, r = -0.603. There is the greatest amount of variance in effect sizes from studies that regard higher education (school_type = 3) than secondary (school_type = 2) or primary (school_type = 1). 
+
+ggscatter(TechnostressDat, x = "fishers_z", y = "avg_age",
+  facet.by  = "latent_var", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+# It appears that the latent variable anxiety has a slightly curvilinear relationship with average age. This shows that, for those studies that involved average ages between ~15-20, effect sizes were generally larger than other age groups.  
+
+ggplot(TechnostressDat, aes(x = fishers_z, y = avg_age, color = latent_var, fill = latent_var)) +
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Average Age") + 
+   geom_textsmooth(aes(label = latent_var, color = latent_var), 
+                  method = "lm", formula = y ~ x, size = 4, linetype = 3, 
+                  fontface = 3, linewidth = 1, vjust = -0.5, color = "orange") +
+  ggtitle("Scatterplot of Average Age and Effect Size by Latent Variable") +
+  stat_ellipse(geom="polygon", aes(fill = latent_var), 
+                      alpha = 0.2,
+                      level = 0.95) + 
+  theme(legend.position = "none")
+
+# A negative relationsihp exists between age and size of effect. In addition, there is greater variability in the size of effect for studies regarding anxiety (latent_var = 0) than depression (1) or fatigue (2). 
+
+ggscatter(TechnostressDat, x = "fishers_z", y = "pct_fem",
+  facet.by  = "latent_var", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+# Interestingly, studies with a greater percent of female students using technology found there to be lower effects when in the secondary school type. Note--there are about equal % of male and female participants when effect sizes are largest, indicating that technology use with a homogenously female sample COULD lead to less indication of technostress effects. 
+
+# In general, the higher % of females in the sample for higher education, the larger the effects. This relationship is not strong, where
+
+ggscatter(TechnostressDat, x = "fishers_z", y = "pct_fem",
+  facet.by  = "school_type", 
+  short.panel.labs = FALSE) +
+  stat_smooth(method = "loess", span = 0.9)
+
+ggplot(TechnostressDat, aes(x = fishers_z, y = pct_fem, color = school_type, fill = school_type)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Percent Female") + 
+  geom_textsmooth(aes(label = school_type, color = school_type),
+                  method = "lm", formula = y ~ x, 
+  se = FALSE) +
+  ggtitle("Scatterplot of Percent of Female Participants and Effect Size")
+# A moderate, negative association between percent female and effect size is found in the data r = -0.229. 
+
+ggplot(TechnostressDat, aes(x = fishers_z, y = pct_black)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Percent Black or African American Participants") + 
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE, color = "#1b9e77") +
+  ggtitle("Scatterplot of Frequency Black Participants Moderator and Effect Size")
+cor(TechnostressData$fishers_z, TechnostressData$pct_black, use = "complete.obs")
+# There is a moderate, negative relationships between the effect size and percent of Black or African American participants, r = -0.322. 
+
+ggplot(TechnostressDat, aes(x = fishers_z, y = pct_white)) + 
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Percent White Participants") + 
+  geom_smooth(method = "lm", formula = y ~ x, 
+  se = FALSE, color = "#1b9e77") +
+  ggtitle("Scatterplot of Frequency White Participants Moderator and Effect Size")
+cor(TechnostressData$fishers_z, TechnostressData$pct_white, use = "complete.obs")
+# There is a moderate, negative relationships between the effect size and percent of Black or African American participants, r = -0.346. 
+```
+
+## Descriptives for Overall Study
+### Descriptive Statistics for Study Variables
+
+```{r, subset descriptives}
+summary_fishers_z <- summary(TechnostressData$fishers_z) # 0 missing fishers_z values
+length(which(TechnostressData$fishers_z != 0)) 
+
+convert_z2r(summary_fishers_z[1]) # min fishers z to correlation r transformation
+convert_z2r(summary_fishers_z[6]) # max fishers z to correlation r transformation
+convert_z2r(summary_fishers_z[4]) # avg fishers z to correlation r transformation
+
+summary(TechnostressData$N)
+length(which(TechnostressData$N != 0)) 
+
+summary(TechnostressData$avg_age) # 21 missing average age of sample values
+length(which(TechnostressData$avg_age != 0)) # 106 average age of sample values
+
+summary(TechnostressData$pct_fem)
+length(which(TechnostressData$pct_fem != 0)) # 52 % female values
+
+length(which(TechnostressData$school_type == 0)) # 64 K-12 samples
+length(which(TechnostressData$school_type == 1)) # 53 Higher ed. samples
+length(which(is.na(TechnostressData$school_type))) # 10 missing school types
+```
+
+## Descriptives Subset by Anxiety
+### Descriptive Statistics for Studies of Anxiety Measurements
+
+```{r}
+TechStressDat_Anx <- subset(TechnostressDat, latent_var == 0, select = c("N","avg_age", "pct_fem","school_type", "fishers_z"))
+
+summary(TechStressDat_Anx$N) # 0 missing average age values
+length(which(TechStressDat_Anx$N > 0)) # 54 average age values
+
+summary(TechStressDat_Anx$avg_age) # 6 missing average age values
+length(which(TechStressDat_Anx$avg_age > 0)) # 48 average age values
+
+summary(TechStressDat_Anx$pct_fem) # 2 missing % female values
+length(which(TechStressDat_Anx$pct_fem > 0)) # 52 % female values
+
+count(TechStressDat_Anx, vars = school_type) # 5 missing; 12 K-12 cells, 37 Higher Ed. cells
+
+anx_fishers_z <- summary(TechStressDat_Anx$fishers_z)
+
+convert_z2r(anx_fishers_z[1]) # min fishers z to correlation r transformation
+convert_z2r(anx_fishers_z[6]) # max fishers z to correlation r transformation
+convert_z2r(anx_fishers_z[4]) # avg fishers z to correlation r transformation
+```
+
+## Descriptives Subset by Depression
+### Descriptive Statistics for Studies of Depression Measurements
+
+```{r}
+TechStressDat_Dep <- subset(TechnostressDat, latent_var == 1, select = c("N","avg_age", "pct_fem","school_type", "fishers_z"))
+
+summary(TechStressDat_Dep$N) # 0 missing average age values
+length(which(TechStressDat_Dep$N > 0)) # 54 average age values
+
+summary(TechStressDat_Dep$avg_age) # 6 missing average age values
+length(which(TechStressDat_Dep$avg_age > 0)) # 48 average age values
+
+summary(TechStressDat_Dep$pct_fem) # 2 missing % female values
+length(which(TechStressDat_Dep$pct_fem > 0)) # 52 % female values
+
+count(TechStressDat_Dep, vars = school_type) # 5 missing; 12 K-12 cells, 37 Higher Ed. cells
+
+dep_fishers_z <- summary(TechStressDat_Dep$fishers_z)
+
+convert_z2r(dep_fishers_z[1]) # min fishers z to correlation r transformation
+convert_z2r(dep_fishers_z[6]) # max fishers z to correlation r transformation
+convert_z2r(dep_fishers_z[4]) # avg fishers z to correlation r transformation
+```

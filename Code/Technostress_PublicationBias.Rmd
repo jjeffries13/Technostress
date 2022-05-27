@@ -1,0 +1,231 @@
+---
+title: "Technostress Publication Bias"
+author: "Jay Jeffries"
+date: '2022-05-13'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+
+library(readxl)
+
+TechnostressData <- read_excel("TechnostressData.xlsx")
+
+library(metafor)
+library(ggplot2)
+library(metaviz)
+library(robumeta)
+library(ggpubr)
+library(pwr)
+library(downloadthis)
+```
+
+## Data Download 
+
+```{r, echo = FALSE}
+TechnostressData %>%
+  download_this(
+    output_name = "Technostress Meta-Analysis Dataset",
+    output_extension = ".xlsx",
+    button_label = "Download data as xlsx",
+    button_type = "danger",
+    has_icon = TRUE,
+    icon = "fa fa-save"
+  )
+```
+
+```{r, echo = FALSE}
+SE <- TechnostressData[ ,c("fishers_SE", "fishers_z")]
+effectsize <- TechnostressData[ ,"fishers_z"]
+effectsize <- TechnostressData[ ,c("fishers_SE", "fishers_z")]
+
+TechStressDat <- abs(TechnostressData[1:127, c(49:51, 9, 56:58)])
+
+sunsetdata <- escalc(measure="ZCOR", ri = fishers_z, ni = N, sei = fishers_SE, vi = var, 
+              data = TechStressDat)
+
+res <- rma.uni(yi = TechnostressData$fishers_z, vi = TechnostressData$var, sei = 
+          TechnostressData$fishers_SE, method = "HE")
+
+power <-  pwr.r.test(r = TechnostressData$es_Ztocorr, 
+                     n = TechStressDat$N,
+                     sig.level = 0.05, power = NULL,
+                     alternative = "two.sided")
+
+TechnostressData$power <- power$power
+
+base <- robu(formula = fishers_z ~ 1, data = TechnostressData, 
+            modelweights = "CORR", studynum = studyID, 
+            var.eff.size = var,
+            small = TRUE)
+
+base2 <- rma(yi = fishers_z, # effect size
+                  vi = var, # variance
+                  sei = fishers_SE,
+                  test = "t", # use t-tests
+                  data = TechnostressData, # define data
+                  method = "REML") # estimate variances using REML
+
+```
+
+\newpage
+## Publication Bias
+
+### Publication Bias Plots
+#### Funnel Plots
+```{r}
+funnel(base2, refline = .20, main = "Funnel Plot", legend = TRUE)
+
+funnel(base2, level = c(90, 95, 99), 
+    shade = c("white", "orange", "red"), main = "Countour-Enhanced Funnel Plot", legend = TRUE)
+```
+
+### Power Plots
+#### Power and Sunset Plot
+```{r}
+ggplot(TechnostressData, aes(x = fishers_z, y = power)) +
+  geom_point(position = "jitter") +
+  labs(x = "Effect Size", y = "Power") + 
+  ggtitle("Scatterplot of Average Age and Effect Size by Latent Variable")
+
+viz_sunset(res, contours = TRUE, power_contours =  "continuous")
+```
+
+### Publication Bias Tests
+#### Egger's Test
+
+```{r Eggers Test}
+#robu.egger <- robu(formula = effectsize ~ SE, data = TechnostressData,
+#                   modelweights = "CORR", studynum = studyID, 
+#                   var.eff.size = var, small = TRUE)
+#robu.egger
+
+egger <- regtest(base2, sei = SE, model = "rma")
+egger
+
+?regtest()
+
+pub_type_cov <- lm(fishers_z ~ pub_type, data = TechnostressData) %>% summary()
+pub_type_cov$r.squared
+```
+
+#### Trim and Fill
+
+```{r Trim and Fill}
+# Trim and fill standard errors
+onelevel <- rma(yi =  fishers_z, sei = fishers_SE, data = TechnostressData)
+
+funnel(onelevel)
+
+trimandfill <- trimfill(onelevel)
+# summary(trimandfill2)
+
+funnel(trimandfill, level = c(90, 95, 99),
+    shade = c("white", "orange", "red"), main = "Trimmed & Filled Funnel Plot",
+    legend = TRUE)
+```
+
+#### PET-PEESE
+
+```{r, message = F, warning = F}
+#PET <- robu(formula = effectsize ~ SE, data = TechnostressData, 
+#              modelweights = "CORR", studynum = studyID, var.eff.size = var)
+#print(PET)
+
+PETMod <- rma.uni(yi = fishers_z, # effect size
+                  V = var, # variance
+                  sei = fishers_SE,
+                  data = TechnostressData, # define data
+                  method = "REML") # estimate variances using REML
+summary(PETMod)
+
+regtest(PETMod, predictor = "sei") # PET Test
+
+PETPlot <- ggplot(TechnostressData) +
+  aes(x = fishers_z, y = fishers_SE) +
+  geom_point(shape = "circle", size = 1.5, colour = "#196719") +
+  geom_smooth(method = "lm", span = 1L) +
+  labs(title = "Scatterplot of Fishers z Score and Standard Error") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12L,
+    face = "bold",
+    hjust = 0.5),
+    axis.title.y = element_text(size = 12L,
+    face = "bold"),
+    axis.title.x = element_text(size = 12L,
+    face = "bold")
+  )
+
+PETPlot + stat_cor(method = "pearson", label.x = .42, label.y = .097)
+
+se <- seq(0, 0.8, length=100)
+funnel(onelevel)
+lines(coef(egger$fit)[1] + coef(egger$fit)[2]*se, se, lwd=2) # Using SE for regression line
+
+
+regtest(PETMod, predictor = "vi") # PEESE Test
+
+PEESEPlot <- ggplot(TechnostressData) +
+  aes(x = fishers_z, y = var) +
+  geom_point(shape = "circle", size = 1.5, colour = "#196719") +
+  geom_smooth(method = "lm", span = 1L) +
+  labs(title = "Scatterplot of Fishers z Score and Variance") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12L,
+    face = "bold",
+    hjust = 0.5),
+    axis.title.y = element_text(size = 12L,
+    face = "bold"),
+    axis.title.x = element_text(size = 12L,
+    face = "bold")
+  )
+
+PEESEPlot + stat_cor(method = "pearson", label.x = .42, label.y = .0112)
+
+funnel(onelevel)
+lines(coef(egger$fit)[1] + coef(egger$fit)[2]*se^2, se, lwd=2) # Using Var for regression line
+
+#fit_PET <- lm(fishers_z ~ fishers_SE, weights = 1/fishers_SE^2, data = TechStressDat)
+#summary(fit_PET)$coefficients
+#summary(fit_PET)
+#confint(fit_PET, 'fishers_SE', level = .95, data = TechStressDat)
+
+# plot(fit_PET)
+
+# variance <- I(TechStressDat$fishers_SE^2)
+
+#fit_PEESE <- lm(fishers_z ~ variance, weights = 1/fishers_SE^2, data = TechStressDat)
+#summary(fit_PEESE)$coefficients
+#summary(fit_PEESE)
+#confint(fit_PEESE, 'variance', level = .95, data = TechStressDat)
+
+```
+
+#### Publication Type Regression
+
+```{r}
+lm(data = TechnostressData, fishers_z ~ pub_type) %>% 
+  summary()
+```
+
+#### Selection Models
+
+```{r, message = F, warning = F}
+# library(weightr)
+
+selectionmod <- selmodel(base2, type = "stepfun", steps = c(.025, .05, 1), alternative="two.sided")
+summary(selectionmod)
+plot(selectionmod, xlim = c(0, .15))
+# profile(selectionmod)
+
+# resw <- weightfunct(effect = TechStressDat$fishers_z, v = TechStressDat$var, steps = c(.025, .05), table = TRUE)
+
+#resw
+
+tes(base2)
+```
+Because this is a two-sided model, the interval 0 < **p** < .025 examines significant values whereas the interval .025 < **p** < .05 examines "marginally" significant, or p-values approaching significance.
